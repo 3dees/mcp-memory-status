@@ -1,5 +1,5 @@
 """
-memory_status diagnostic tool (Python, official MCP SDK FastMCP)
+memory_status diagnostic tool (Python, official MCP SDK, 1.x FastMCP or 2.x MCPServer)
 
 Drop into an MCP server to make it self-report its memory state. Lets a
 developer diagnose a user's install without access to that user's machine or
@@ -24,10 +24,13 @@ import os
 import time
 import uuid
 
-# ADAPT 1: with standalone FastMCP 2.x, use `from fastmcp import Context`.
-# The parameter must be annotated with Context. Without the annotation, FastMCP
-# exposes `ctx` as a tool input and passes None.
-from mcp.server.fastmcp import Context
+# ADAPT 1: with the standalone `fastmcp` package, use `from fastmcp import Context`.
+# The parameter must be annotated with Context. Without the annotation, the
+# server exposes `ctx` as a tool input and passes None.
+try:
+    from mcp.server.mcpserver import Context  # official SDK 2.x
+except ImportError:
+    from mcp.server.fastmcp import Context  # official SDK 1.x
 
 # ADAPT 1: import the real store and the identity helper.
 # from .store import store

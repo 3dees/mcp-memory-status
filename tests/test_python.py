@@ -4,7 +4,7 @@ Behavior tests for python/memory_status.py.
 Runs the template inside a real FastMCP server against a fake store, one
 scenario per failure the tool is meant to catch.
 
-Requires: pip install mcp
+Requires: pip install mcp (1.x or 2.x)
 """
 
 import asyncio
@@ -16,7 +16,10 @@ import pathlib
 import sys
 import tempfile
 
-from mcp.server.fastmcp import FastMCP
+try:
+    from mcp.server.mcpserver import MCPServer  # official SDK 2.x
+except ImportError:
+    from mcp.server.fastmcp import FastMCP as MCPServer  # official SDK 1.x
 
 TEMPLATE = pathlib.Path(__file__).resolve().parent.parent / "python" / "memory_status.py"
 SOURCE = TEMPLATE.read_text(encoding="utf-8")
@@ -75,14 +78,17 @@ def server(store, user_key, replace=None):
 
     module.store = store
     module.get_user_key = get_user_key
-    mcp = FastMCP("test")
+    mcp = MCPServer("test")
     module.register_memory_status(mcp)
     return mcp
 
 
 async def call(mcp):
     result = await mcp.call_tool("memory_status", {})
-    content = result[0] if isinstance(result, tuple) else result
+    if hasattr(result, "content"):  # 2.x returns a CallToolResult
+        content = result.content
+    else:  # 1.x returns (content, structured) or a bare list
+        content = result[0] if isinstance(result, tuple) else result
     return json.loads(content[0].text)
 
 
@@ -90,7 +96,8 @@ async def main():
     store = FakeStore()
     mcp = server(store, "user-1")
     tools = await mcp.list_tools()
-    check(tools[0].inputSchema.get("properties", {}) == {}, "ctx is not exposed as a tool input")
+    schema = getattr(tools[0], "input_schema", None) or tools[0].inputSchema  # 2.x renamed it
+    check(schema.get("properties", {}) == {}, "ctx is not exposed as a tool input")
 
     first = await call(mcp)
     check(first["previous_call"] == {"found": False}, "first call finds no earlier record")

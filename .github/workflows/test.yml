@@ -7,13 +7,18 @@ on:
 
 jobs:
   python:
+    name: python (${{ matrix.sdk }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sdk: ["mcp>=1.26,<2", "mcp>=2"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install "mcp>=1.26"
+      - run: pip install "${{ matrix.sdk }}"
       - run: python tests/test_python.py
 
   typescript:

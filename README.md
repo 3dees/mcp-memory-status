@@ -32,19 +32,19 @@ That's usually a week of back and forth with a customer, done in two messages.
 
 ## Add it to your server
 
-### Python (official MCP SDK)
+### Python (official MCP SDK, 1.x or 2.x)
 
 Copy [`python/memory_status.py`](python/memory_status.py) into your server, fill in the four `ADAPT` blocks, and register it:
 
 ```python
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer  # on 1.x: from mcp.server.fastmcp import FastMCP
 from memory_status import register_memory_status
 
-mcp = FastMCP("my-server")
+mcp = MCPServer("my-server")
 register_memory_status(mcp)
 ```
 
-On standalone FastMCP 2.x? Swap the `Context` import, it's marked in the file. I haven't tested that path yet.
+The template picks the right import for your SDK version on its own. Using the standalone `fastmcp` package instead? Swap the `Context` import, it's marked in the file. I haven't tested that one yet.
 
 ### TypeScript
 
@@ -81,7 +81,7 @@ If memory fades only in long conversations, oldest messages first, that's the co
 
 ## Tested against
 
-- Python: `mcp` 1.26.0
+- Python: `mcp` 1.26.0 and 2.3.0
 - TypeScript: `@modelcontextprotocol/sdk` 1.32.2 on Node 24
 
 Run the tests yourself:
